@@ -1,16 +1,16 @@
-include <common.scad>
+include <../common.scad>
 
 BAGS_X = RIGHT_SIDE_GROUP_X - 2 * WALL;
-BAGS_Y = 65.5;
-CARDS_AND_BAGS_Z = 98;
+BAGS_Y = 66.5;
+CARDS_AND_BAGS_Z = 95;
 
-CARDS_Y = 66;
+CARDS_Y = 68;
 
 // Technology and Weather decks
-CARDS_X_1 = 25;
+CARDS_X_1 = 24;
 
 // Expedition decks
-CARDS_X_2 = 29;
+CARDS_X_2 = 27;
 
 // Citizens deck
 CARDS_X_3 = 21;

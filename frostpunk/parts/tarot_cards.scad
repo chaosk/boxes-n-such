@@ -1,10 +1,10 @@
-include <common.scad>
+include <../common.scad>
 
 TAROT_X = RIGHT_SIDE_GROUP_X - 2 * WALL;
-TAROT_Z = 128;
+TAROT_Z = 125;
 
 // Morning deck
-TAROT_Y_1 = 28;
+TAROT_Y_1 = 25;
 
 // Social Dispute deck
 TAROT_Y_2 = 8;
@@ -13,16 +13,16 @@ TAROT_Y_2 = 8;
 TAROT_Y_3 = 43;
 
 // Law Consequences cards
-TAROT_Y_4 = 27;
+TAROT_Y_4 = 24;
 
 // Law cards
-TAROT_Y_5 = 16;
+TAROT_Y_5 = 14;
 
 // Society cards
-TAROT_Y_6 = 15;
+TAROT_Y_6 = 12;
 
 // Scenario cards
-TAROT_Y_7 = 29;
+TAROT_Y_7 = 27;
 
 TAROT_COMMON = [
     [CMP_CUTOUT_SIDES_4B, [true, false, false, false]],

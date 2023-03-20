@@ -1,4 +1,4 @@
-include <common.scad>
+include <../common.scad>
 
 BUILDINGS_X = 100;
 BUILDINGS_Y = 100;

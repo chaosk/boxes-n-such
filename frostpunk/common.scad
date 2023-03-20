@@ -1,4 +1,4 @@
-include <../boardgame_insert_toolkit_lib.2.scad>
+include <../vendor/The-Boardgame-Insert-Toolkit/boardgame_insert_toolkit_lib.2.scad>
 
 // Global toolkit settings
 
@@ -41,9 +41,10 @@ WALL = g_wall_thickness;
 
 BASE_HEIGHT = 2;
 
+BOX_BUDGET = 306;
+
 // Left-hand side part of the insert's width.
-LEFT_SIDE_GROUP_X = 235;
+LEFT_SIDE_GROUP_X = 228;
 
 // Right-hand side part of the insert's width.
-RIGHT_SIDE_GROUP_X = 81;
-
+RIGHT_SIDE_GROUP_X = 78;

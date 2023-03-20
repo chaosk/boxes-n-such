@@ -1,0 +1,3 @@
+[submodule "vendor/The-Boardgame-Insert-Toolkit"]
+	path = vendor/The-Boardgame-Insert-Toolkit
+	url = https://github.com/dppdppd/The-Boardgame-Insert-Toolkit.git

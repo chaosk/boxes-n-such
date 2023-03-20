@@ -1,10 +1,10 @@
-include <tarot_cards.scad>
-include <cards_hope_discontent.scad>
-include <setup_components.scad>
-include <generator.scad>
-include <map_tiles.scad>
-include <meeples_tokens.scad>
-include <buildings_tray.scad>
+include <parts/tarot_cards.scad>
+include <parts/cards_hope_discontent.scad>
+include <parts/setup_components.scad>
+include <parts/generator.scad>
+include <parts/map_tiles.scad>
+include <parts/meeples_tokens.scad>
+include <parts/buildings_tray.scad>
 
 data = [
 	tarot(),

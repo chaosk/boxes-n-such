@@ -1,9 +1,9 @@
-include <common.scad>
+include <../common.scad>
 
 MAP_TILES_X = 48;
 MAP_TILES_Y = 87;
-MAP_TILES_EMPTY_Y = 30;
-MAP_TILES_Z = 84; // FIXME Need to accomodate for rulebooks/cardboards.
+MAP_TILES_EMPTY_Y = 15;
+MAP_TILES_Z = 84;
 
 MAP_TILES_COMMON = [
 	[CMP_COMPARTMENT_SIZE_XYZ, [MAP_TILES_X, MAP_TILES_Y, MAP_TILES_Z]],
@@ -14,7 +14,7 @@ MAP_TILES_COMMON = [
     [CMP_CUTOUT_WIDTH_PCT, 60],
 ];
 
-MAP_TILES_BOX_Y = 210;
+MAP_TILES_BOX_Y = MAP_TILES_Y * 2 + MAP_TILES_EMPTY_Y + 4 * WALL;
 
 function map_tiles() = [
     "Map tiles",
