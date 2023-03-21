@@ -1,3 +1,3 @@
 # Frostpunk board game insert
 
-Heavily inspired by (Kalkared)[https://www.kalkared.eu/en/insert-pro-frostpunk/]'s design. Uses (The Boardgame Insert Toolkit)[https://github.com/dppdppd/The-Boardgame-Insert-Toolkit].
+Heavily inspired by [Kalkared](https://www.kalkared.eu/en/insert-pro-frostpunk/)'s design. Uses [The Boardgame Insert Toolkit](https://github.com/dppdppd/The-Boardgame-Insert-Toolkit).
