@@ -32,16 +32,18 @@ class Aliens(Part):
         model = self.place_cutout(model, "+X", self.x_cutout_size)
         model = self.place_cutout(model, "+Y", self.y_cutout_size)
         # Round the upper edges of the cutouts
-        return (
-            model.faces(">Z")
-            .edges(">X[0] or >X[-1] or >Y[0] or >Y[-1]")
-            .fillet(self.outer_shell_fillet_radius)
-            # Cut the bottom out
-            .faces("<Z")
-            .workplane()
-            .placeSketch(self.cutout_bottom_shape())
-            .cutThruAll()
-        )
+        return [
+            (
+                model.faces(">Z")
+                .edges(">X[0] or >X[-1] or >Y[0] or >Y[-1]")
+                .fillet(self.outer_shell_fillet_radius)
+                # Cut the bottom out
+                .faces("<Z")
+                .workplane()
+                .placeSketch(self.cutout_bottom_shape())
+                .cutThruAll()
+            )
+        ]
 
     def cutout_side_shape(self, size):
         # Make a trapezoid that's rounded at the bottom

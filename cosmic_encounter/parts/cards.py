@@ -27,21 +27,21 @@ class Cards(Part):
             .shell(1.5)
             .faces("<X")
             .workplane()
-            .placeSketch((
-	            cq.Sketch()
-	            .rect(1, self.size[2])
-	        ))
+            .placeSketch((cq.Sketch().rect(1, self.size[2])))
             .cutBlind("next")
             .faces("<Z")
             .workplane()
-            .placeSketch((
-	            cq.Sketch()
-	            .rect(*self.finger_hole_size)
-	            .vertices("<Z")
-	            .fillet(self.fillet_radius)
-	        )).cutThruAll()
-	        .faces(">Z")
+            .placeSketch(
+                (
+                    cq.Sketch()
+                    .rect(*self.finger_hole_size)
+                    .vertices("<Z")
+                    .fillet(self.fillet_radius)
+                )
+            )
+            .cutThruAll()
+            .faces(">Z")
             .edges(">X[0]")
             .fillet(self.fillet_radius)
         )
-        return model
+        return [model]
