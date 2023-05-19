@@ -1,7 +1,7 @@
 include <../common.scad>
 
 GENERATOR_X = LEFT_SIDE_GROUP_X - 2 * WALL;
-GENERATOR_Y = 106;
+GENERATOR_Y = 108;
 GENERATOR_Z = 108;
 
 function generator() = [

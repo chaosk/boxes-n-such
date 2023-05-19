@@ -7,12 +7,12 @@ include <parts/meeples_tokens.scad>
 include <parts/buildings_tray.scad>
 
 data = [
-	tarot(),
-	cards_hope_discontent(),
-	setup_components(),
-	generator(),
-	map_tiles(),
-    meeples_tokens(),
+	// tarot(),
+	// cards_hope_discontent(),
+	// setup_components(),
+	// generator(),
+	// map_tiles(),
+    // meeples_tokens(),
     buildings_tray(),
 ];
 
