@@ -1,78 +1,69 @@
 # boxes-n-such — agent instructions
 
-CadQuery (and legacy OpenSCAD) 3D models for board-game box inserts and related printables.
+Parametric CadQuery models for 3D-printed board-game inserts and related printables.
 
-## Stack choice
+## Canonical reference (newest first)
 
-- **Prefer CadQuery** for all new inserts and parts. Match `cosmic_encounter/`.
-- **Do not expand OpenSCAD / Boardgame Insert Toolkit** (`frostpunk/`, `vendor/`) unless an issue explicitly says so. Treat Frostpunk as legacy reference only.
+| Path | Role |
+| --- | --- |
+| **`botc_town_stand/`** | **Preferred pattern** for new CadQuery work (config / parts / `__main__`, multi-colour 3MF). |
+| **`insertkit/`** | Shared helpers: `cqutil` (profiles, rings, offsets, text) and `bambu3mf` (Bambu multi-colour 3MF). |
+| `cosmic_encounter/` | Older CadQuery (`Part` / `Project` kit, STL-oriented). Prefer BotC + insertkit for new packages. |
+| `frostpunk/`, `vendor/` | Legacy OpenSCAD + Boardgame Insert Toolkit — do not expand unless an issue says so. |
 
-## Package layout (CadQuery)
+## Tooling
 
-One Python package per game, sibling to `cosmic_encounter/`:
+- Python **≥ 3.11**, managed with **`uv`** (`pyproject.toml` + `uv.lock`).
+- Dependencies: `cadquery`, `shapely`, `matplotlib`; optional `cq-editor` in the `dev` group.
+- Repo is not an installable package (`tool.uv.package = false`). Run from the **repo root**:
+
+```bash
+uv run python -m botc_town_stand
+```
+
+- CQ-editor: open `__main__.py`; scripts stub `show_object` when it is not injected.
+- Never commit `*.stl` (root `.gitignore`). Multi-colour **`.3mf`** exports may live beside the package when that is the deliverable (see `botc_town_stand/town_stand.3mf`).
+- Sign every commit (`git commit -S`). Do not commit secrets.
+
+## New package layout (match BotC)
 
 ```text
 <game>/
-  __init__.py          # optional
-  kit.py               # shared Part / Project helpers (copy or import patterns from CE)
-  main.py              # CQ-editor entry: builds Project, calls show_object
-  player_box.py        # optional standalone scripts (lids, player boxes)
-  parts/
-    __init__.py        # export Part subclasses
-    <component>.py     # one Part class per file
+  README.md       # design intent, how to run
+  config.py       # all parameters (mm); builders stay declarative
+  parts.py        # builders returning solids / colour-split parts
+  __main__.py     # assemble, CQ-editor preview, export 3MF
+  __init__.py
 ```
 
-Reference implementation: `cosmic_encounter/` (`kit.py`, `parts/aliens.py`, `parts/cards.py`, `main.py`, `player_box.py`).
-
-## Part / Project kit
-
-Use the small kit in `cosmic_encounter/kit.py`:
-
-- **`Part`** — subclass with `make()` returning `Workplane`s or named `Object`s. Named objects become assembly members.
-- **`Project`** — holds parts + a `show_object` callable; builds a CadQuery `Assembly` and `.show()` for CQ-editor.
-- **`Object`** — `name` + `workplane` pair for multi-solid parts.
-
-Wire parts in `main.py` like Cosmic Encounter:
-
-```python
-from .kit import Project
-from .parts import Aliens, Cards
-
-def do():
-    return Project((Aliens("aliens"), Cards("cards_1")), show_object=show_object)
-```
-
-`show_object` is provided by CQ-editor (or a stub in headless runs). Prefer named parts so exports stay identifiable.
+Import shared code as `from insertkit import cqutil, bambu3mf` (repo root on `sys.path`; `__main__.py` may insert the root when opened directly / in CQ-editor).
 
 ## Modelling conventions
 
-- **API**: fluent CadQuery `Workplane` API (`import cadquery as cq`). Do not mix free-function API in the same script unless converting explicitly.
-- **Units**: millimetres everywhere.
-- **Shells**: thin walls ~**1.5 mm** (`.faces("+Z").shell(1.5)`).
-- **Outer edges**: light fillets on vertical edges (typically ~**1 mm**); small fillets (~0.4 mm) where faces meet.
-- **Finger / side cutouts**: `cq.Sketch` (rect, trapezoid) + fillets on vertices, then `.cutThruAll()` / `.cutBlind("next")`. Side cutouts often offset slightly (e.g. `.center(0, 1)`) so the top opens without cutting the bottom rim.
-- **Ergonomics**: finger wells and side openings so cards/tokens lift out without fighting the shell.
-- **Dimensions**: measure components; leave slight clearance for print tolerance (see lid clearance in `player_box.py`: lid cut slightly oversized).
+- **Units:** millimetres. Put every tunable in `config.py` (sizes, clearances, colours, font paths).
+- **API:** fluent CadQuery `Workplane`, plus shapely outlines in `cqutil`.
+- **BRep idiom (insertkit):** build a closed **profile**, then **extrude once**. Prefer `cqutil.face` / `extrude` / `ring` / `offset` / `notched_rect` / `stepped_rect` / `text_solid` over “extrude a slab then carve everything away.”
+- **Booleans:** reserve `.cut` / `.union` for genuine cavities (pockets, wells, slots) and for combining separate colour solids — not as the default construction style.
+- **Multi-colour:** one solid (or Workplane) per filament colour; group parts for `bambu3mf.plate_layout` / `export_bambu_3mf` with filament hex colours and extruder indices.
+- **Clearances:** name them in config (e.g. press-fit peg vs hole, lid channel / tongue, pocket oversize). Document intent in comments next to the constants.
+- **Ergonomics:** finger notches, pegs, lead-ins, and print orientation (e.g. lid face-up with underside channel) belong in the design parameters, not as afterthoughts.
 
-Load the workspace **cadquery-llm-skill** for idiomatic BRep / selector / shell patterns. Prefer selecting faces/edges and shelving over CSG piles of unions/cuts when possible; cuts for finger wells and component pockets are normal for inserts.
+Load the workspace **cadquery-llm-skill** for general CadQuery / BRep patterns. Prefer selecting faces/edges and profile extrusion; avoid CSG reflex when `cqutil.ring` / offset profiles suffice.
 
 ## Export / print workflow
 
-- Iterate in **CQ-editor** with `show_object` / `Project.show()`.
-- Export STL (or STEP/3MF) locally for slicing — **never commit `*.stl`** (gitignored).
-- Headless export is fine when CadQuery/OCP is installed: build the `Workplane`/`Assembly`, then `cq.exporters.export(...)`. Do not rely on CQ-editor for CI.
-- Validate fits with test prints before locking dimensions.
+1. Iterate parameters in `config.py`; rebuild with `uv run python -m <package>` or CQ-editor `show_object`.
+2. Export multi-colour Bambu 3MF via `insertkit.bambu3mf` (plates, filament colours, welded meshes).
+3. Slice in Bambu Studio (or equivalent). Keep generated STLs untracked.
 
-## Git / commits
+## Adding a new insert / printable
 
-- Sign every commit (`git commit -S` / `commit.gpgsign`). Never leave unsigned commits.
-- Do not commit secrets, credentials, or generated meshes (`*.stl`).
-- Keep PRs focused on one game package or shared kit change.
+1. Add `<game>/` with `config.py`, `parts.py`, `__main__.py`, and a short README.
+2. Reuse `insertkit.cqutil` for profiles/rings/text; use `insertkit.bambu3mf` if the print is multi-colour.
+3. Do not copy `cosmic_encounter/kit.py` for new work unless an issue requires matching that older style.
+4. Leave OpenSCAD / BIT alone unless asked.
+5. Smoke-check with `uv run` (needs CadQuery/OCP via uv) or CQ-editor on a machine that has them.
 
-## Adding a new game insert
+## Older Cosmic Encounter notes (legacy CadQuery)
 
-1. Create `<game>/` with `kit.py` (reuse CE patterns), `parts/`, and `main.py`.
-2. Add `Part` subclasses for each printable (tray, card well, lid).
-3. Register parts in `main.py` via `Project` + `show_object`.
-4. Keep Frostpunk/OpenSCAD untouched unless the issue requires legacy work.
-5. Smoke-check geometry in CQ-editor (or headless export if available); leave STLs untracked.
+Still valid if editing CE only: per-game `kit.py` (`Part` / `Project` / `Object`), `parts/` modules, ~1.5 mm `.shell()`, Sketch finger cutouts, CQ-editor `show_object`. Prefer migrating new games to the BotC + insertkit layout above.
