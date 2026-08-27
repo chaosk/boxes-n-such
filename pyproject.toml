@@ -1,0 +1,30 @@
+[project]
+name = "boxes-n-such"
+version = "0.0.0"
+description = "Parametric CadQuery models for 3D-printed board-game inserts."
+requires-python = ">=3.11"
+dependencies = [
+    "cadquery>=2.8",
+    "matplotlib>=3.11.0",
+    "shapely>=2.1.2",
+]
+
+[dependency-groups]
+dev = [
+    "black>=24",
+    "isort>=5",
+    "cq-editor",  # GUI viewer; scripts call its injected show_object
+]
+
+[tool.uv]
+# Importable packages run in place from the repo root (e.g.
+# `uv run python -m netrunner_chips`); nothing is pip-installed.
+package = false
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
