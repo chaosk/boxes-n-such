@@ -22,7 +22,7 @@ uv run python -m botc_town_stand
 ```
 
 - CQ-editor: open `__main__.py`; scripts stub `show_object` when it is not injected.
-- Never commit `*.stl` (root `.gitignore`). Multi-colour **`.3mf`** exports may live beside the package when that is the deliverable (see `botc_town_stand/town_stand.3mf`).
+- Never commit `*.stl` or `*.3mf` (root `.gitignore`). Export locally with `uv run python -m <package>`, or download CI workflow artifacts from Actions.
 - Sign every commit (`git commit -S`). Do not commit secrets.
 
 ## New package layout (match BotC)
@@ -55,6 +55,19 @@ Load the workspace **cadquery-llm-skill** for general CadQuery / BRep patterns. 
 1. Iterate parameters in `config.py`; rebuild with `uv run python -m <package>` or CQ-editor `show_object`.
 2. Export multi-colour Bambu 3MF via `insertkit.bambu3mf` (plates, filament colours, welded meshes).
 3. Slice in Bambu Studio (or equivalent). Keep generated STLs untracked.
+
+## CI build packages
+
+GitHub Actions (`.github/workflows/build.yml`) builds printable artifacts per CadQuery package on push/PR.
+
+A **build package** is a top-level directory that:
+
+1. Contains `__main__.py` that exports artifacts when run as `uv run python -m <dir>`.
+2. Is not shared toolkit / vendor (`insertkit/`, `vendor/`, `frostpunk/`, `scripts/`, …).
+
+Discovery lives in `scripts/list_build_packages.py`. CI rebuilds only packages whose tree changed; a change under `insertkit/`, or to `pyproject.toml` / `uv.lock`, rebuilds every discovered package. Artifacts (`*.3mf`) are uploaded per package — never commit STLs or 3MFs.
+
+To opt a new project into CI: add `__main__.py` that exports on `__main__` (match `botc_town_stand/`). Packages without that entrypoint (e.g. legacy `cosmic_encounter/`) stay out of the matrix until they match this layout.
 
 ## Adding a new insert / printable
 

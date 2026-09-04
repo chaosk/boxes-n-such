@@ -39,4 +39,4 @@ vocabulary, `bambu3mf` for the multi-colour 3MF export).
 uv run python -m botc_town_stand
 ```
 
-Writes `town_stand.3mf` (box + board + tags) next to the package.
+Writes `town_stand.3mf` (box + board + tags) next to the package (gitignored; also available as a CI artifact).
