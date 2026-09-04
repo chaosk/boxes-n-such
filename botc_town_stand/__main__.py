@@ -29,12 +29,19 @@ else:
 
 
 # --------------------------------------------------------------------------- #
-# Build
+# Build (lazy — skip heavy CadQuery work on import unless preview/export runs)
 # --------------------------------------------------------------------------- #
 
-board = make_board()
-box = make_box()
-tags = [(cat, num, col, make_tag(num)) for cat, num, col in C.ALL_TAGS]
+_board = _box = _tags = None
+
+
+def _ensure_built():
+    global _board, _box, _tags
+    if _tags is None:
+        _board = make_board()
+        _box = make_box()
+        _tags = [(cat, num, col, make_tag(num)) for cat, num, col in C.ALL_TAGS]
+    return _board, _box, _tags
 
 
 def describe():
@@ -43,7 +50,7 @@ def describe():
           f"{C.N_POCKET} pockets @ {C.POCKET_PITCH}")
     print(f"box         : {C.BOARD_W:.1f} x {C.BOARD_H:.1f} x {C.BOX_H:.1f} mm "
           f"(well {C.BOX_INNER_DEPTH}), stand lean {C.LEAN_DEG:.0f} deg")
-    print(f"tags        : {len(tags)} @ {C.TAG_W} x {C.TAG_H} x {C.TAG_T}")
+    print(f"tags        : {len(C.ALL_TAGS)} @ {C.TAG_W} x {C.TAG_H} x {C.TAG_T}")
 
 
 # --------------------------------------------------------------------------- #
@@ -61,7 +68,7 @@ def _ext(hexcol):
 def _tag_groups(category):
     """The printable-object groups for every tag in one category."""
     out = []
-    for cat, num, col, (body, colour) in tags:
+    for cat, num, col, (body, colour) in _ensure_built()[2]:
         if cat != category:
             continue
         name = f"tag_{cat}_{num.replace('?', 'q')}"
@@ -72,6 +79,7 @@ def _tag_groups(category):
 
 def plates():
     """One Bambu plate per tag category, plus a plate for the box and the lid."""
+    board, box, _ = _ensure_built()
     return [
         ("demon", _tag_groups("DEMON")),
         ("minions", _tag_groups("MINIONS")),
@@ -97,6 +105,7 @@ def _rgb(hexcol):
 def demo_assembly():
     """Playing mode: board standing upright in the box slot with a 7-player town
     shown; spares would live in the compartment behind it."""
+    board, box, tags = _ensure_built()
     seat = seat_location()
     asm = cq.Assembly(name="botc")
     asm.add(box, name="box", color=_rgb(C.BLACK))
@@ -104,8 +113,9 @@ def demo_assembly():
     asm.add(board["frame"], name="frame", color=_rgb(C.LAVENDER), loc=seat)
 
     shown = {"TOWNSFOLK": "7", "OUTSIDERS": "0", "MINIONS": "2", "DEMON": "1"}
+    tag_by_num = {num: (body, colour) for _, num, _, (body, colour) in tags}
     for x, (cat, _, col) in zip(C.POCKET_XS, C.CATEGORIES):
-        body, colour = make_tag(shown[cat])
+        body, colour = tag_by_num[shown[cat]]
         loc = seat * cq.Location((x, 0, C.FACE_T - C.POCKET_DEPTH))
         asm.add(body, name=f"tag_{cat}", color=_rgb(C.BLACK), loc=loc)
         asm.add(colour, name=f"num_{cat}", color=_rgb(col), loc=loc)

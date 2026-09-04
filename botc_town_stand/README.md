@@ -9,11 +9,15 @@ tag-shaped pockets. You push the numbered tags for the current player count into
 the pockets (the tags carry their own category-coloured border); the spares live
 in the box underneath.
 
+## Print notes
+
+Print the board part with supports enabled.
+
 ## Tag set (Trouble Brewing)
 
 | Category  | Numbers | Colour |
 | --------- | ------- | ------ |
-| Townsfolk | 5/7/9   | blue   |
+| Townsfolk | 3/5/7/9 | blue   |
 | Outsiders | 0/1/2   | cyan   |
 | Minions   | 1/2/3   | orange |
 | Demon     | 1       | red    |

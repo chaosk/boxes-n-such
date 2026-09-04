@@ -5,6 +5,8 @@ share this vocabulary. The helpers follow the BRep idiom of *building a profile
 and extruding it once* rather than extruding a slab and cutting it away.
 """
 
+import functools
+
 import cadquery as cq
 from matplotlib.font_manager import FontProperties
 from matplotlib.path import Path as MplPath
@@ -85,6 +87,7 @@ def _quad(p0, p1, p2, n):
             for t in (k / n for k in range(1, n + 1))]
 
 
+@functools.lru_cache(maxsize=32)
 def _glyph_geom(txt, size, font_path, curve_steps):
     """Flatten the glyph run ``txt`` into a shapely (multi)polygon with holes.
 

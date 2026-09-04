@@ -26,7 +26,7 @@ def _find_font(*needles, fallback_family="serif"):
 # --------------------------------------------------------------------------- #
 
 CATEGORIES = [
-    ("TOWNSFOLK", ["5", "7", "9"], "#2E6BE6"),   # blue
+    ("TOWNSFOLK", ["3", "5", "7", "9"], "#2E6BE6"),   # blue
     ("OUTSIDERS", ["0", "1", "2"], "#28B6D4"),   # cyan
     ("MINIONS", ["1", "2", "3"], "#E8602A"),     # orange
     ("DEMON", ["1"], "#D43028"),                 # red
@@ -50,10 +50,18 @@ RING_GAP = 1.4        # colour border inset from the tag edge
 RING_W = 1.9          # colour border width
 RING_RELIEF = 0.7     # colour border / numeral height above the face
 
-NUM_SIZE = 28.0
+NUM_SIZE = 30.5
 NUM_Y = -2.0
 NUM_RELIEF = 0.7
-FONT_PATH = _find_font("dumbledor", fallback_family="serif")
+_FONT_PATH: str | None = None
+
+
+def font_path() -> str:
+    """Lazily resolve the numeral font (matplotlib scans installed fonts once)."""
+    global _FONT_PATH
+    if _FONT_PATH is None:
+        _FONT_PATH = _find_font("dumbledor", fallback_family="serif")
+    return _FONT_PATH
 
 # --------------------------------------------------------------------------- #
 # Board (the lid)
@@ -89,6 +97,12 @@ FRAME_R1 = 1.1
 FRAME_R2 = 2.4
 
 BOARD_CORNER_R = 9.0
+
+# Touch rounding — matched 0.35 mm top-rim on tags, pockets, box, and lid.
+EDGE_FILLET = 0.35
+RING_TOP_FILLET = EDGE_FILLET        # colour border only (numeral added after)
+FRAME_T1_FILLET = 0.3                # outer lavender step (1.1 mm tall; 0.35 fails in OCC)
+FRAME_T2_FILLET = EDGE_FILLET        # inner lavender step
 
 # --------------------------------------------------------------------------- #
 # Box

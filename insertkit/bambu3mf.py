@@ -12,6 +12,7 @@ the plate; ``export_bambu_3mf`` writes the archive.
 import json
 import math
 import zipfile
+from concurrent.futures import ThreadPoolExecutor
 
 _IDENT = "1 0 0 0 1 0 0 0 1 0 0 0"
 _PLATE_GAP = 0.2  # Bambu LOGICAL_PART_PLATE_GAP (bed stride = bed * 1.2)
@@ -164,12 +165,19 @@ def _weld(verts, tris, ndigits=4):
     return uniq, out
 
 
-def _mesh_xml(solid, obj_id, tol=0.06):
-    verts, tris = _weld(*solid.tessellate(tol))
+def _mesh_data(solid, tol=0.06):
+    return _weld(*solid.tessellate(tol))
+
+
+def _mesh_xml_from_data(verts, tris, obj_id):
     vtx = "".join(f'<vertex x="{x:.4f}" y="{y:.4f}" z="{z:.4f}"/>' for x, y, z in verts)
     tri = "".join(f'<triangle v1="{a}" v2="{b}" v3="{c}"/>' for a, b, c in tris)
     return (f'<object id="{obj_id}" type="model"><mesh>'
             f'<vertices>{vtx}</vertices><triangles>{tri}</triangles></mesh></object>')
+
+
+def _mesh_xml(solid, obj_id, tol=0.06):
+    return _mesh_xml_from_data(*_mesh_data(solid, tol), obj_id)
 
 
 def export_bambu_3mf(groups, filament_colors, path, plates=None,
@@ -181,7 +189,8 @@ def export_bambu_3mf(groups, filament_colors, path, plates=None,
     ``[(plate_name, [group_name, ...]), ...]``) the objects are split across that
     many Bambu plates; otherwise everything lands on a single plate.
     """
-    meshes, group_objs, next_id = [], [], 1
+    # Flatten parts, tessellate unique solids in parallel, reuse mesh data.
+    mesh_jobs, group_objs, next_id = [], [], 1
     for entry in groups:
         if len(entry) >= 4:
             gname, parts, local, origin = entry[:4]
@@ -198,13 +207,21 @@ def export_bambu_3mf(groups, filament_colors, path, plates=None,
         refs = []
         for pname, part, extruder in parts:
             print(f"  {gname}/{pname}…", flush=True)
-            meshes.append(_mesh_xml(_solid(part), next_id))
+            mesh_jobs.append((next_id, _solid(part)))
             refs.append((next_id, pname, extruder))
             next_id += 1
         comps = "".join(f'<component objectid="{oid}" transform="{_IDENT}"/>'
                         for oid, _, _ in refs)
         group_objs.append((next_id, gname, refs, comps, world, local, origin))
         next_id += 1
+
+    unique_solids = list({id(s): s for _, s in mesh_jobs}.values())
+    tess_cache: dict[int, tuple] = {}
+    with ThreadPoolExecutor() as pool:
+        for solid, data in zip(unique_solids, pool.map(_mesh_data, unique_solids)):
+            tess_cache[id(solid)] = data
+    meshes = [_mesh_xml_from_data(*tess_cache[id(solid)], obj_id)
+              for obj_id, solid in mesh_jobs]
 
     resources = "".join(meshes) + "".join(
         f'<object id="{goid}" type="model"><components>{comps}</components></object>'
