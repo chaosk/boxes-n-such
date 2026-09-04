@@ -1,0 +1,72 @@
+name: Build packages
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    name: Discover packages
+    runs-on: ubuntu-latest
+    outputs:
+      packages: ${{ steps.list.outputs.packages }}
+      has_packages: ${{ steps.list.outputs.has_packages }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: List packages to build
+        id: list
+        env:
+          BASE_REF: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+          BEFORE_SHA: ${{ github.event_name == 'push' && github.event.before || '' }}
+        run: |
+          set -euo pipefail
+          pkgs=$(python3 scripts/list_build_packages.py --changed)
+          echo "packages=$pkgs" >> "$GITHUB_OUTPUT"
+          if [ "$pkgs" = "[]" ]; then
+            echo "has_packages=false" >> "$GITHUB_OUTPUT"
+            echo "No CadQuery packages to rebuild."
+          else
+            echo "has_packages=true" >> "$GITHUB_OUTPUT"
+            echo "Building: $pkgs"
+          fi
+
+  build:
+    name: Build ${{ matrix.package }}
+    needs: discover
+    if: needs.discover.outputs.has_packages == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ${{ fromJson(needs.discover.outputs.packages) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen --no-dev
+
+      - name: Export ${{ matrix.package }}
+        run: uv run python -m ${{ matrix.package }}
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.package }}
+          path: ${{ matrix.package }}/*.3mf
+          if-no-files-found: error
+          retention-days: 14

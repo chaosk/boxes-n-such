@@ -14,12 +14,12 @@ importable package that builds its parts and writes a single multi-colour 3MF.
 ## Run
 
 ```bash
+uv sync
 uv run python -m netrunner_chips
 uv run python -m botc_town_stand
 ```
 
-Each writes its `.3mf` next to the package. See each project's README for the
-design notes and file layout.
+Each writes its `.3mf` next to the package (gitignored). Download built files from CI workflow artifacts, or export locally. See each project's README for design notes, and [AGENTS.md](AGENTS.md) for package layout and how CI discovers **build packages**.
 
 ## Development
 
