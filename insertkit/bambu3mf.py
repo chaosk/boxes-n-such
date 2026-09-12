@@ -7,8 +7,6 @@ Model-agnostic: callers pass *groups* of the form
 where each group becomes one Bambu object built from component parts, and each
 part is assigned a filament (extruder). ``tile_layout`` / ``plate_layout``
 arrange the groups; ``export_bambu_3mf`` writes the archive.
-
-XML payloads are built with ``xml.etree.ElementTree`` (no string-built tags).
 """
 
 from __future__ import annotations
